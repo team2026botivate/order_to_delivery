@@ -1,0 +1,36 @@
+.unauthorized-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  padding: 40px;
+}
+
+.unauthorized-card {
+  text-align: center;
+  background: var(--bg-panel);
+  padding: 60px 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+}
+
+.unauthorized-title {
+  font-size: 4rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin: 0 0 10px;
+  line-height: 1;
+}
+
+.unauthorized-subtitle {
+  font-size: 1.5rem;
+  color: var(--text-main);
+  margin: 0 0 16px;
+}
+
+.unauthorized-text {
+  color: var(--text-muted);
+  margin: 0 0 32px;
+}
