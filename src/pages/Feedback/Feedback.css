@@ -1,1 +1,108 @@
-/* Specific styles for Feedback page if needed, otherwise inherits from global */
+/* ── Feedback form field wrapper ──────────────────────────── */
+.fb-field {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+.fb-field:last-child { border-bottom: none; }
+
+.fb-field-label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+/* ── Star rating ──────────────────────────────────────────── */
+.star-rating { display: inline-flex; flex-direction: column; gap: 2px; }
+
+.star-scale-row,
+.star-btn-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.star-scale-num {
+  width: 30px;
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.star-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--gray-300);
+  padding: 0;
+  border-radius: 4px;
+  transition: color 0.15s, transform 0.1s;
+}
+.star-btn:hover { transform: scale(1.15); }
+.star-btn.star-filled { color: #eab308; }
+.star-btn.star-filled svg { fill: #eab308; }
+
+/* ── Radio group ──────────────────────────────────────────── */
+.radio-group { display: flex; flex-direction: column; gap: 8px; }
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+  color: var(--text);
+  cursor: pointer;
+  width: fit-content;
+}
+
+.radio-option input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--success);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ── Feedback view grid (in ViewModal) ───────────────────── */
+.fb-view-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  padding: 12px 14px;
+  background: var(--gray-50);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.fb-view-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fb-view-full { grid-column: span 2; }
+
+.fb-view-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fb-view-value {
+  font-size: 0.84rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .fb-view-grid { grid-template-columns: 1fr; }
+  .fb-view-full { grid-column: span 1; }
+}

@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard, ClipboardList, Truck, Receipt, LogOut,
   ChevronLeft, ChevronRight, Package, Shield, User, LogOut as LogOutIcon,
-  CheckSquare, MessageSquare
+  CheckSquare, MessageSquare, Clock
 } from 'lucide-react'
 import { useOrderContext } from '../../context/OrderContext'
 import { useAuth } from '../../auth/AuthContext'
@@ -15,6 +15,13 @@ const NAV_ITEMS = [
     icon: LayoutDashboard,
     badgeKey: null,
     permission: 'dashboard'
+  },
+  {
+    path: '/on-time-delivery',
+    label: 'On Time Delivery',
+    icon: Clock,
+    badgeKey: null,
+    permission: 'onTimeDelivery'
   },
   {
     path: '/order-details',

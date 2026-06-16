@@ -85,7 +85,6 @@ function GatePassActionModal({ order, onSubmit, onClose }) {
               ['Order No',   order.OrderNo],
               ['S.Order No', order.SOrderNo],
               ['Product',    order.ProductName],
-              ['Bill No',    order.BillNo],
               ['Bill Qty',   order.BillQty || order.Qty],
               ['Company',    order.CompanyName],
             ].map(([l, v]) => (
@@ -170,7 +169,7 @@ function ViewModal({ order, onClose }) {
               ['Order No', order.OrderNo], ['S.Order No', order.SOrderNo],
               ['Product', order.ProductName], ['Company', order.CompanyName],
               ['Qty', order.Qty], ['Bill Qty', order.BillQty],
-              ['Bill No', order.BillNo], ['Gate Pass Date', fmtDate(order.GatePassDate)],
+              ['Gate Pass Date', fmtDate(order.GatePassDate)],
               ['Dispatch Through', order.DespatchThrough], ['Godown', order.Godown],
               ['Account Name', order.AccountName], ['Status', order.status?.replace(/_/g, ' ')],
             ].map(([l, v]) => (

@@ -219,7 +219,7 @@ function reducer(state, action) {
     }
 
     case 'SUBMIT_FEEDBACK': {
-      const { id, feedbackText, approvedBy = 'Admin User' } = action.payload
+      const { id, feedbackData, approvedBy = 'Admin User' } = action.payload
       const now = new Date().toISOString()
       return state.map(o => {
         if (o.id !== id) return o
@@ -227,10 +227,10 @@ function reducer(state, action) {
           ...o,
           status: 'COMPLETED',
           previousStatus: 'FEEDBACK_PENDING',
-          feedbackText,
+          feedbackData,
           workflowHistory: [
             ...o.workflowHistory,
-            { stage: 'FEEDBACK_PENDING', label: 'Feedback', approvedAt: now, approvedBy, feedbackText },
+            { stage: 'FEEDBACK_PENDING', label: 'Feedback', approvedAt: now, approvedBy },
           ],
         }
       })
@@ -261,8 +261,8 @@ export function OrderProvider({ children }) {
   const approveAudit = (id, auditPassed) =>
     dispatch({ type: 'APPROVE_AUDIT', payload: { id, auditPassed } })
 
-  const submitFeedback = (id, feedbackText) =>
-    dispatch({ type: 'SUBMIT_FEEDBACK', payload: { id, feedbackText } })
+  const submitFeedback = (id, feedbackData) =>
+    dispatch({ type: 'SUBMIT_FEEDBACK', payload: { id, feedbackData } })
 
   const createOrder = orderData =>
     dispatch({ type: 'CREATE_ORDER', payload: { orderData } })

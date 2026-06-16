@@ -6,6 +6,7 @@ import Billing from '../pages/Billing/Billing'
 import GatePassOut from '../pages/GatePassOut/GatePassOut'
 import Audit from '../pages/Audit/Audit'
 import Feedback from '../pages/Feedback/Feedback'
+import OnTimeDelivery from '../pages/OnTimeDelivery/OnTimeDelivery'
 import Login from '../pages/Login/Login'
 import Unauthorized from '../pages/Unauthorized/Unauthorized'
 import Settings from '../pages/Settings/Settings'
@@ -17,7 +18,6 @@ export default function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      
       <Route path="/dashboard" element={
         <ProtectedRoute permissionKey="dashboard"><Dashboard /></ProtectedRoute>
       } />
@@ -38,6 +38,9 @@ export default function AppRoutes() {
       } />
       <Route path="/feedback" element={
         <ProtectedRoute permissionKey="feedback"><Feedback /></ProtectedRoute>
+      } />
+      <Route path="/on-time-delivery" element={
+        <ProtectedRoute permissionKey="onTimeDelivery"><OnTimeDelivery /></ProtectedRoute>
       } />
       <Route path="/settings" element={
         <ProtectedRoute permissionKey="settings"><Settings /></ProtectedRoute>

@@ -16,7 +16,6 @@ const COLUMNS = [
   { key: 'totalAmount', label: 'Total Amount', sortable: false, getter: o => o.billingData?.totalAmount || '—' },
   { key: 'billAmount',  label: 'Bill Amount',  sortable: false, getter: o => o.billingData?.billAmount || '—' },
   { key: 'BillPkgs',    label: 'Packages',     sortable: true, type: 'number' },
-  { key: 'BillNo',      label: 'Bill No',      sortable: true },
   { key: 'status',      label: 'Status',       sortable: true },
 ]
 
@@ -39,7 +38,7 @@ function BillingActionModal({ order, onSubmit, onClose }) {
   const maxQty = order.Qty || 0
   const [form, setForm] = useState({
     whatsapp: '', billUrl: '', totalAmount: '', billAmount: '',
-    packages: '', billQty: String(maxQty), billNo: order.BillNo !== '—' ? order.BillNo : '',
+    packages: '', billQty: String(maxQty),
     remarks: '',
   })
   const [billImage, setBillImage] = useState(null)
@@ -166,12 +165,6 @@ function BillingActionModal({ order, onSubmit, onClose }) {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Bill No</label>
-              <input type="text" className="form-input" placeholder="e.g. BILL-0001" value={form.billNo}
-                onChange={e => set('billNo', e.target.value)} />
-            </div>
-
-            <div className="form-group">
               <label className="form-label">WhatsApp Number</label>
               <input type="tel" className="form-input" placeholder="+91 98765 43210" value={form.whatsapp}
                 onChange={e => set('whatsapp', e.target.value)} />
@@ -232,7 +225,7 @@ function ViewModal({ order, onClose }) {
             {[
               ['Order No', order.OrderNo], ['S.Order No', order.SOrderNo],
               ['Product', order.ProductName], ['Qty', order.Qty], 
-              ['Bill Qty', order.BillQty], ['Bill No', order.BillNo], 
+              ['Bill Qty', order.BillQty], 
               ['Bill Pkgs', order.BillPkgs], ['Status', order.status?.replace(/_/g, ' ')],
             ].map(([l, v]) => (
               <div key={l}>
@@ -308,8 +301,7 @@ function filterOrders(orders, { search, company, product, godown, dateFrom, date
       return (
         o.OrderNo.toLowerCase().includes(s) ||
         o.SOrderNo.toLowerCase().includes(s) ||
-        o.ProductName.toLowerCase().includes(s) ||
-        (o.BillNo && o.BillNo.toLowerCase().includes(s))
+        o.ProductName.toLowerCase().includes(s)
       )
     }
     return true

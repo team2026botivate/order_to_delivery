@@ -71,7 +71,6 @@ export default function DashboardCards({ stats }) {
   return (
     <>
       <KpiCards stats={stats} />
-      <WorkflowPipeline stats={stats} />
     </>
   )
 }

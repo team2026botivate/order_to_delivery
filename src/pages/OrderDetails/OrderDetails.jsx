@@ -28,7 +28,6 @@ const COLUMNS = [
   { key: 'PendingQty',           label: 'Pending Qty',    sortable: true, type: 'number',   width: 90  },
   { key: 'BillQty',              label: 'Bill Qty',       sortable: true, type: 'number',   width: 75  },
   { key: 'BillPkgs',             label: 'Bill Pkgs',      sortable: true, type: 'number',   width: 80  },
-  { key: 'BillNo',               label: 'Bill No',        sortable: true, width: 100 },
   { key: 'ImgUrl',               label: 'Image',          type: 'image',  width: 70  },
 ]
 
@@ -58,7 +57,9 @@ const EMPTY_FORM = {
   GatePassDate: '', BillingDate: '', CreatedOn: '', DespatchThrough: '',
   BuyresRef: '', DespDate: '', CompanyID: '', CompanyName: '', Godown: '',
   AccountName: '', ProductName: '', Qty: '', Qty_Billed: '0',
-  PendingQty: '', BillQty: '0', BillPkgs: '0', BillNo: '', ImgUrl: '',
+  PendingQty: '', BillQty: '0', BillPkgs: '0', ImgUrl: '',
+  VoucherNo: '', VoucherNoString: '', GatePassDate: '', ReadyForDeliveryDate: '',
+  OnTimeStatus: 'Pending', SameDayStatus: 'Pending'
 }
 
 function CreateOrderModal({ onSubmit, onClose }) {
@@ -129,7 +130,10 @@ function CreateOrderModal({ onSubmit, onClose }) {
       PendingQty: qty,
       BillQty:   0,
       BillPkgs:  0,
-      BillNo:    form.BillNo || '—',
+      VoucherNo: form.VoucherNo || '',
+      VoucherNoString: form.VoucherNoString || '',
+      OnTimeStatus: form.OnTimeStatus || 'Pending',
+      SameDayStatus: form.SameDayStatus || 'Pending',
       ImgUrl:    imgPreview || form.ImgUrl || `https://picsum.photos/seed/${generatedId}/300/300`,
       workflowHistory: [],
     }
@@ -158,38 +162,15 @@ function CreateOrderModal({ onSubmit, onClose }) {
         ) : (
           <>
             <div className="form-modal-body">
-              {/* Order Identifiers */}
-              <div className="form-section-title">Order Identifiers</div>
+              <div className="form-section-title">Order Info</div>
               <div className="form-row form-row-3">
                 <div className="form-group">
-                  <label className="form-label">Order No <span className="form-required">*</span></label>
+                  <label className="form-label">Order No. <span className="form-required">*</span></label>
                   <input type="text" className="form-input" value={form.OrderNo} onChange={e => set('OrderNo', e.target.value)} />
                   {errors.OrderNo && <span className="form-error">{errors.OrderNo}</span>}
                 </div>
                 <div className="form-group">
-                  <label className="form-label">S.Order No <span className="form-required">*</span></label>
-                  <input type="text" className="form-input" value={form.SOrderNo} onChange={e => set('SOrderNo', e.target.value)} />
-                  {errors.SOrderNo && <span className="form-error">{errors.SOrderNo}</span>}
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Buyer's Ref</label>
-                  <input type="text" className="form-input" value={form.BuyresRef} onChange={e => set('BuyresRef', e.target.value)} />
-                </div>
-              </div>
-
-              {/* Company & Product */}
-              <div className="form-section-title">Company &amp; Product</div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">Company <span className="form-required">*</span></label>
-                  <select className="form-select form-input" value={form.CompanyID} onChange={e => set('CompanyID', e.target.value)}>
-                    <option value="">Select Company</option>
-                    {COMPANIES_LIST.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                  {errors.CompanyID && <span className="form-error">{errors.CompanyID}</span>}
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Account Name</label>
+                  <label className="form-label">Party Name (Account Name)</label>
                   <input type="text" className="form-input" value={form.AccountName} onChange={e => set('AccountName', e.target.value)} />
                 </div>
                 <div className="form-group">
@@ -200,6 +181,57 @@ function CreateOrderModal({ onSubmit, onClose }) {
                   </select>
                   {errors.ProductName && <span className="form-error">{errors.ProductName}</span>}
                 </div>
+                <div className="form-group">
+                  <label className="form-label">Voucher No</label>
+                  <input type="text" className="form-input" value={form.VoucherNo} onChange={e => set('VoucherNo', e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Voucher No String</label>
+                  <input type="text" className="form-input" value={form.VoucherNoString} onChange={e => set('VoucherNoString', e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Order Date</label>
+                  <input type="datetime-local" className="form-input" value={form.SOrderDateTime} onChange={e => set('SOrderDateTime', e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Dispatch Planned Date</label>
+                  <input type="date" className="form-input" value={form.ReadyForDeliveryDate} onChange={e => set('ReadyForDeliveryDate', e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Dispatch Actual Date (Gate Pass Out)</label>
+                  <input type="date" className="form-input" value={form.GatePassDate} onChange={e => set('GatePassDate', e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">On Time Delivery Status</label>
+                  <input type="text" className="form-input" value={form.OnTimeStatus} onChange={e => set('OnTimeStatus', e.target.value)} placeholder="Auto-calculated" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Same Day Delivery Status</label>
+                  <input type="text" className="form-input" value={form.SameDayStatus} onChange={e => set('SameDayStatus', e.target.value)} placeholder="Auto-calculated" />
+                </div>
+              </div>
+
+              {/* Other Details */}
+              <div className="form-section-title">Other Details</div>
+              <div className="form-row form-row-3">
+                <div className="form-group">
+                  <label className="form-label">S.Order No <span className="form-required">*</span></label>
+                  <input type="text" className="form-input" value={form.SOrderNo} onChange={e => set('SOrderNo', e.target.value)} />
+                  {errors.SOrderNo && <span className="form-error">{errors.SOrderNo}</span>}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Buyer's Ref</label>
+                  <input type="text" className="form-input" value={form.BuyresRef} onChange={e => set('BuyresRef', e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Company <span className="form-required">*</span></label>
+                  <select className="form-select form-input" value={form.CompanyID} onChange={e => set('CompanyID', e.target.value)}>
+                    <option value="">Select Company</option>
+                    {COMPANIES_LIST.map(c => <option key={c} value={c.id}>{c.name}</option>)}
+                  </select>
+                  {errors.CompanyID && <span className="form-error">{errors.CompanyID}</span>}
+                </div>
+
                 <div className="form-group">
                   <label className="form-label">Godown</label>
                   <select className="form-select form-input" value={form.Godown} onChange={e => set('Godown', e.target.value)}>
@@ -222,10 +254,6 @@ function CreateOrderModal({ onSubmit, onClose }) {
                   <input type="number" className="form-input" value={form.PendingQty} readOnly />
                   <span className="form-hint">Auto-filled from Qty</span>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Bill No</label>
-                  <input type="text" className="form-input" value={form.BillNo} onChange={e => set('BillNo', e.target.value)} />
-                </div>
               </div>
 
               {/* Dates */}
@@ -236,20 +264,8 @@ function CreateOrderModal({ onSubmit, onClose }) {
                   <input type="date" className="form-input" value={form.CreatedOn} onChange={e => set('CreatedOn', e.target.value)} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">S.Order Date &amp; Time</label>
-                  <input type="datetime-local" className="form-input" value={form.SOrderDateTime} onChange={e => set('SOrderDateTime', e.target.value)} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">RFD Date</label>
-                  <input type="date" className="form-input" value={form.ReadyForDeliveryDate} onChange={e => set('ReadyForDeliveryDate', e.target.value)} />
-                </div>
-                <div className="form-group">
                   <label className="form-label">Billing Date</label>
                   <input type="date" className="form-input" value={form.BillingDate} onChange={e => set('BillingDate', e.target.value)} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Gate Pass Date</label>
-                  <input type="date" className="form-input" value={form.GatePassDate} onChange={e => set('GatePassDate', e.target.value)} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Despatch Date</label>
@@ -388,8 +404,7 @@ function filterOrders(orders, { search, company, product, godown, dateFrom, date
         o.SOrderNo.toLowerCase().includes(s) ||
         o.ProductName.toLowerCase().includes(s) ||
         o.CompanyName.toLowerCase().includes(s) ||
-        o.AccountName.toLowerCase().includes(s) ||
-        (o.BillNo && o.BillNo.toLowerCase().includes(s))
+        o.AccountName.toLowerCase().includes(s)
       )
     }
     return true

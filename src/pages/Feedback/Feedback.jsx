@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { FileText, X, MessageSquare, CheckCircle2, Send } from 'lucide-react'
+import { FileText, X, MessageSquare, CheckCircle2, Send, Star } from 'lucide-react'
 import { useOrderContext } from '../../context/OrderContext'
 import { COMPANIES_LIST, PRODUCTS_LIST, GODOWNS_LIST } from '../../data/dummyOrders'
 import StatusTabs from '../../components/StatusTabs/StatusTabs'
@@ -15,12 +15,6 @@ const COLUMNS = [
   { key: 'CreatedOn',   label: 'Created On',     sortable: true, type: 'date' },
 ]
 
-function fmtDate(v) {
-  if (!v) return '—'
-  const d = new Date(v)
-  return isNaN(d) ? v : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-
 function fmtDT(v) {
   if (!v) return '—'
   const d = new Date(v)
@@ -29,10 +23,73 @@ function fmtDT(v) {
     ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
 }
 
+/* ── Star Rating ─────────────────────────────────────────── */
+function StarRating({ value, onChange }) {
+  const [hovered, setHovered] = useState(0)
+  return (
+    <div className="star-rating">
+      <div className="star-scale-row">
+        {[1, 2, 3, 4, 5].map(n => (
+          <span key={n} className="star-scale-num">{n}</span>
+        ))}
+      </div>
+      <div className="star-btn-row">
+        {[1, 2, 3, 4, 5].map(n => (
+          <button
+            key={n}
+            type="button"
+            className={`star-btn ${n <= (hovered || value) ? 'star-filled' : ''}`}
+            onClick={() => onChange(n)}
+            onMouseEnter={() => setHovered(n)}
+            onMouseLeave={() => setHovered(0)}
+            aria-label={`Rate ${n} out of 5`}
+          >
+            <Star size={22} />
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* ── Radio Group ─────────────────────────────────────────── */
+function RadioGroup({ value, onChange, name }) {
+  return (
+    <div className="radio-group">
+      {['Yes', 'No'].map(opt => (
+        <label key={opt} className={`radio-option ${value === opt.toLowerCase() ? 'radio-selected' : ''}`}>
+          <input
+            type="radio"
+            name={name}
+            value={opt.toLowerCase()}
+            checked={value === opt.toLowerCase()}
+            onChange={() => onChange(opt.toLowerCase())}
+          />
+          <span>{opt}</span>
+        </label>
+      ))}
+    </div>
+  )
+}
+
+const INITIAL_FORM = {
+  onTimeDelivery: '',
+  deliveryTeamRating: 0,
+  packagingOk: '',
+  materialCondition: 0,
+  correctProduct: '',
+  qualityOk: '',
+  anyDamage: '',
+  billCorrect: '',
+  overallRating: 0,
+  wouldReorder: '',
+  comments: '',
+}
+
 /* ── Feedback Action Modal ───────────────────────────────── */
 function FeedbackActionModal({ order, onSubmit, onClose }) {
-  const [feedbackText, setFeedbackText] = useState('')
-  const [error, setError] = useState('')
+  const [form, setForm] = useState(INITIAL_FORM)
+  const [errors, setErrors] = useState({})
 
   useEffect(() => {
     const h = e => { if (e.key === 'Escape') onClose() }
@@ -40,17 +97,38 @@ function FeedbackActionModal({ order, onSubmit, onClose }) {
     return () => window.removeEventListener('keydown', h)
   }, [onClose])
 
+  const set = (key, val) => {
+    setForm(f => ({ ...f, [key]: val }))
+    setErrors(e => ({ ...e, [key]: '' }))
+  }
+
+  const validate = () => {
+    const errs = {}
+    if (!form.onTimeDelivery)    errs.onTimeDelivery    = 'Required'
+    if (!form.deliveryTeamRating) errs.deliveryTeamRating = 'Required'
+    if (!form.packagingOk)       errs.packagingOk       = 'Required'
+    if (!form.materialCondition)  errs.materialCondition  = 'Required'
+    if (!form.correctProduct)    errs.correctProduct    = 'Required'
+    if (!form.qualityOk)         errs.qualityOk         = 'Required'
+    if (!form.anyDamage)         errs.anyDamage         = 'Required'
+    if (!form.billCorrect)       errs.billCorrect       = 'Required'
+    if (!form.overallRating)     errs.overallRating     = 'Required'
+    if (!form.wouldReorder)      errs.wouldReorder      = 'Required'
+    return errs
+  }
+
   const handleSubmit = () => {
-    if (!feedbackText.trim()) {
-      setError('Please provide feedback.')
+    const errs = validate()
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs)
       return
     }
-    onSubmit(feedbackText)
+    onSubmit(form)
   }
 
   return (
     <div className="form-modal-backdrop" onClick={onClose}>
-      <div className="form-modal" onClick={ev => ev.stopPropagation()}>
+      <div className="form-modal form-modal-lg" onClick={ev => ev.stopPropagation()}>
         <div className="form-modal-header">
           <div className="form-modal-title">
             <MessageSquare size={17} /> Feedback — {order.OrderNo}
@@ -59,7 +137,7 @@ function FeedbackActionModal({ order, onSubmit, onClose }) {
         </div>
 
         <div className="form-modal-body">
-          <div className="info-grid">
+          <div className="info-grid" style={{ marginBottom: 4 }}>
             {[
               ['Order No',   order.OrderNo],
               ['S.Order No', order.SOrderNo],
@@ -73,21 +151,81 @@ function FeedbackActionModal({ order, onSubmit, onClose }) {
             ))}
           </div>
 
-          <div className="form-section-title">Add Feedback</div>
-          <div className="form-row">
-            <div className="form-group form-col-span-2">
-              <label className="form-label">Feedback <span className="form-required">*</span></label>
-              <textarea 
-                className="form-textarea form-input" 
-                placeholder="Enter your feedback here..." 
-                value={feedbackText}
-                onChange={e => {
-                  setFeedbackText(e.target.value)
-                  setError('')
-                }} 
-              />
-              {error && <span className="form-error">{error}</span>}
-            </div>
+          <div className="form-section-title">Delivery</div>
+
+          <div className="fb-field">
+            <div className="fb-field-label">On-time delivery? <span className="form-required">*</span></div>
+            <RadioGroup value={form.onTimeDelivery} onChange={v => set('onTimeDelivery', v)} name="onTimeDelivery" />
+            {errors.onTimeDelivery && <span className="form-error">{errors.onTimeDelivery}</span>}
+          </div>
+
+          <div className="fb-field">
+            <div className="fb-field-label">Delivery team professional? <span className="form-required">*</span></div>
+            <StarRating value={form.deliveryTeamRating} onChange={v => set('deliveryTeamRating', v)} />
+            {errors.deliveryTeamRating && <span className="form-error">{errors.deliveryTeamRating}</span>}
+          </div>
+
+          <div className="form-section-title">Product & Packaging</div>
+
+          <div className="fb-field">
+            <div className="fb-field-label">Packaging OK? <span className="form-required">*</span></div>
+            <RadioGroup value={form.packagingOk} onChange={v => set('packagingOk', v)} name="packagingOk" />
+            {errors.packagingOk && <span className="form-error">{errors.packagingOk}</span>}
+          </div>
+
+          <div className="fb-field">
+            <div className="fb-field-label">Material condition? <span className="form-required">*</span></div>
+            <StarRating value={form.materialCondition} onChange={v => set('materialCondition', v)} />
+            {errors.materialCondition && <span className="form-error">{errors.materialCondition}</span>}
+          </div>
+
+          <div className="fb-field">
+            <div className="fb-field-label">Correct product? <span className="form-required">*</span></div>
+            <RadioGroup value={form.correctProduct} onChange={v => set('correctProduct', v)} name="correctProduct" />
+            {errors.correctProduct && <span className="form-error">{errors.correctProduct}</span>}
+          </div>
+
+          <div className="fb-field">
+            <div className="fb-field-label">Quality OK? <span className="form-required">*</span></div>
+            <RadioGroup value={form.qualityOk} onChange={v => set('qualityOk', v)} name="qualityOk" />
+            {errors.qualityOk && <span className="form-error">{errors.qualityOk}</span>}
+          </div>
+
+          <div className="fb-field">
+            <div className="fb-field-label">Any damage? <span className="form-required">*</span></div>
+            <RadioGroup value={form.anyDamage} onChange={v => set('anyDamage', v)} name="anyDamage" />
+            {errors.anyDamage && <span className="form-error">{errors.anyDamage}</span>}
+          </div>
+
+          <div className="form-section-title">Overall Experience</div>
+
+          <div className="fb-field">
+            <div className="fb-field-label">Bill correct? <span className="form-required">*</span></div>
+            <RadioGroup value={form.billCorrect} onChange={v => set('billCorrect', v)} name="billCorrect" />
+            {errors.billCorrect && <span className="form-error">{errors.billCorrect}</span>}
+          </div>
+
+          <div className="fb-field">
+            <div className="fb-field-label">Overall Rating <span className="form-required">*</span></div>
+            <StarRating value={form.overallRating} onChange={v => set('overallRating', v)} />
+            {errors.overallRating && <span className="form-error">{errors.overallRating}</span>}
+          </div>
+
+          <div className="fb-field">
+            <div className="fb-field-label">Would reorder? <span className="form-required">*</span></div>
+            <RadioGroup value={form.wouldReorder} onChange={v => set('wouldReorder', v)} name="wouldReorder" />
+            {errors.wouldReorder && <span className="form-error">{errors.wouldReorder}</span>}
+          </div>
+
+          <div className="fb-field">
+            <div className="fb-field-label">Comments</div>
+            <textarea
+              className="form-textarea form-input"
+              placeholder="Your answer"
+              value={form.comments}
+              onChange={e => set('comments', e.target.value)}
+              rows={3}
+            />
           </div>
         </div>
 
@@ -110,9 +248,11 @@ function ViewModal({ order, onClose }) {
     return () => window.removeEventListener('keydown', h)
   }, [onClose])
 
+  const fd = order.feedbackData
+
   return (
     <div className="form-modal-backdrop" onClick={onClose}>
-      <div className="form-modal" onClick={ev => ev.stopPropagation()}>
+      <div className="form-modal form-modal-lg" onClick={ev => ev.stopPropagation()}>
         <div className="form-modal-header">
           <div className="form-modal-title"><FileText size={16} /> {order.OrderNo} — Order Details</div>
           <button className="form-modal-close" onClick={onClose}><X size={14} /></button>
@@ -130,12 +270,36 @@ function ViewModal({ order, onClose }) {
               </div>
             ))}
           </div>
-          
-          {order.feedbackText && (
+
+          {fd && (
             <>
               <div className="form-section-title">Feedback Provided</div>
-              <div style={{ padding: '10px 14px', background: 'var(--gray-50)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', fontSize: '0.85rem' }}>
-                {order.feedbackText}
+              <div className="fb-view-grid">
+                {[
+                  ['On-time delivery',       fd.onTimeDelivery],
+                  ['Delivery team rating',   `${fd.deliveryTeamRating} / 5`],
+                  ['Packaging OK',           fd.packagingOk],
+                  ['Material condition',     `${fd.materialCondition} / 5`],
+                  ['Correct product',        fd.correctProduct],
+                  ['Quality OK',             fd.qualityOk],
+                  ['Any damage',             fd.anyDamage],
+                  ['Bill correct',           fd.billCorrect],
+                  ['Overall rating',         `${fd.overallRating} / 5`],
+                  ['Would reorder',          fd.wouldReorder],
+                ].map(([label, val]) => (
+                  <div key={label} className="fb-view-item">
+                    <span className="fb-view-label">{label}</span>
+                    <span className="fb-view-value">
+                      {typeof val === 'string' ? val.charAt(0).toUpperCase() + val.slice(1) : val}
+                    </span>
+                  </div>
+                ))}
+                {fd.comments && (
+                  <div className="fb-view-item fb-view-full">
+                    <span className="fb-view-label">Comments</span>
+                    <span className="fb-view-value">{fd.comments}</span>
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -214,8 +378,8 @@ export default function Feedback() {
     setDateFrom(''); setDateTo(''); setOrderNo(''); setSOrderNo('')
   }
 
-  const handleActionSubmit = (feedbackText) => {
-    submitFeedback(actionOrder.id, feedbackText)
+  const handleActionSubmit = (feedbackData) => {
+    submitFeedback(actionOrder.id, feedbackData)
     setActionOrder(null)
   }
 

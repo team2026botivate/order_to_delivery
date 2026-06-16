@@ -19,6 +19,7 @@ export const DEFAULT_ADMIN = {
     audit: true,
     feedback: true,
     settings: true,
+    onTimeDelivery: true,
   },
 };
 
@@ -39,6 +40,7 @@ export const DEFAULT_USER = {
     audit: true,
     feedback: true,
     settings: false,
+    onTimeDelivery: true,
   },
 };
 
@@ -66,6 +68,7 @@ export function AuthProvider({ children }) {
           ...u.permissions,
           audit: u.permissions.audit !== undefined ? u.permissions.audit : (u.role === 'ADMIN' || u.username === 'user'),
           feedback: u.permissions.feedback !== undefined ? u.permissions.feedback : (u.role === 'ADMIN' || u.username === 'user'),
+          onTimeDelivery: u.permissions.onTimeDelivery !== undefined ? u.permissions.onTimeDelivery : true,
         }
       }));
       localStorage.setItem('acemark_users', JSON.stringify(loadedUsers));

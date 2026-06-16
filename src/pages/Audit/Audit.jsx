@@ -125,7 +125,7 @@ function ViewModal({ order, onClose }) {
               ['Order No', order.OrderNo], ['S.Order No', order.SOrderNo],
               ['Product', order.ProductName], ['Company', order.CompanyName],
               ['Qty', order.Qty], ['Bill Qty', order.BillQty],
-              ['Bill No', order.BillNo], ['Gate Pass Date', fmtDate(order.GatePassDate)],
+              ['Gate Pass Date', fmtDate(order.GatePassDate)],
               ['Dispatch Through', order.DespatchThrough], ['Godown', order.Godown],
               ['Status', order.status?.replace(/_/g, ' ')],
             ].map(([l, v]) => (
