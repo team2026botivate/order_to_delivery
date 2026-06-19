@@ -1,12 +1,13 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import {
-  Truck, Search, Download, ChevronUp, ChevronDown, Eye, X, Filter, Calendar
+  Truck, Search, Download, ChevronUp, ChevronDown, Eye, X, Filter, Calendar,
+  Package, CheckCircle2, TrendingUp, TrendingDown, Activity, Minus, AlertTriangle, Clock
 } from 'lucide-react'
 import { useOrderContext } from '../../context/OrderContext'
 import { COMPANIES_LIST, PRODUCTS_LIST, GODOWNS_LIST } from '../../data/dummyOrders'
 import {
-  getWeekNo, getDateStr, isDispatched,
-  isOnTime, isSameDay, isOverdue, getDeliveryStatus, fmtDate
+  getWeekNo, getDateStr, getToday, isDispatched,
+  isOnTime, isSameDay, isOverdue, getDeliveryStatus, fmtDate, pct
 } from '../../utils/deliveryHelpers'
 import './OnTimeDelivery.css'
 
@@ -323,6 +324,66 @@ function FullDataTable({ orders }) {
   )
 }
 
+// ── Summary KPI Card ──────────────────────────────────────────
+function KpiCard({ label, value, suffix, colorClass, icon: Icon, tooltip }) {
+  const [tip, setTip] = useState(false)
+  return (
+    <div className={`otd-kpi ${colorClass}`}>
+      <div className="otd-kpi-head">
+        <div className="otd-kpi-icon"><Icon size={17} /></div>
+        <div className="otd-kpi-tip" onMouseEnter={() => setTip(true)} onMouseLeave={() => setTip(false)}>
+          <span>?</span>
+          {tip && <div className="otd-kpi-tooltip">{tooltip}</div>}
+        </div>
+      </div>
+      <div className="otd-kpi-value">{value}<span className="otd-kpi-suffix">{suffix}</span></div>
+      <div className="otd-kpi-label">{label}</div>
+    </div>
+  )
+}
+
+function SummaryCards({ orders }) {
+  const k = useMemo(() => {
+    const dispatched = orders.filter(isDispatched)
+    const pending = orders.filter(o => !isDispatched(o))
+    const onTime = dispatched.filter(isOnTime)
+    const delayed = dispatched.filter(o => !isOnTime(o))
+    const sameDay = dispatched.filter(isSameDay)
+    const overdue = orders.filter(isOverdue)
+    const td = getToday()
+    const pendingTillToday = pending.filter(o => !o.DespDate || new Date(o.DespDate) >= td)
+    return {
+      total: orders.length,
+      dispatched: dispatched.length,
+      pending: pending.length,
+      onTimePct: pct(onTime.length, dispatched.length),
+      delayPct: pct(delayed.length, dispatched.length),
+      sameDayPct: pct(sameDay.length, dispatched.length),
+      otherDayPct: pct(dispatched.length - sameDay.length, dispatched.length),
+      deliveryDonePct: pct(dispatched.length, orders.length),
+      overdue: overdue.length,
+      pendingTillToday: pendingTillToday.length,
+      pendingQty: pending.reduce((s, o) => s + (o.PendingQty || 0), 0),
+    }
+  }, [orders])
+
+  return (
+    <div className="otd-kpi-grid" style={{ marginBottom: '20px' }}>
+      <KpiCard label="Total Dispatch Planned" value={k.total} colorClass="kpi-blue" icon={Package} tooltip="Total orders matching current filters." />
+      <KpiCard label="Actual Dispatch" value={k.dispatched} colorClass="kpi-green" icon={CheckCircle2} tooltip="Orders where Gate Pass has been submitted." />
+      <KpiCard label="Pending Dispatch" value={k.pending} colorClass="kpi-orange" icon={Clock} tooltip="Orders not yet dispatched." />
+      <KpiCard label="Delivery Done" value={k.deliveryDonePct} suffix="%" colorClass="kpi-teal" icon={TrendingUp} tooltip="Actual Dispatch ÷ Total Planned × 100" />
+      <KpiCard label="On Time Delivery" value={k.onTimePct} suffix="%" colorClass="kpi-green" icon={CheckCircle2} tooltip="Dispatched on or before planned date ÷ Total Dispatched × 100" />
+      <KpiCard label="Delay Delivery" value={k.delayPct} suffix="%" colorClass="kpi-red" icon={TrendingDown} tooltip="Delayed dispatches ÷ Total Dispatched × 100" />
+      <KpiCard label="Same Day Delivery" value={k.sameDayPct} suffix="%" colorClass="kpi-purple" icon={Activity} tooltip="Gate Pass date = Order creation date ÷ Total Dispatched × 100" />
+      <KpiCard label="Other Day Delivery" value={k.otherDayPct} suffix="%" colorClass="kpi-gray" icon={Minus} tooltip="Non-same-day dispatches ÷ Total Dispatched × 100" />
+      <KpiCard label="Total Pending Qty" value={k.pendingQty} colorClass="kpi-orange" icon={AlertTriangle} tooltip="Sum of pending quantities across all non-dispatched orders." />
+      <KpiCard label="Total Overdue Orders" value={k.overdue} colorClass="kpi-red" icon={AlertTriangle} tooltip="Pending orders whose planned dispatch date has passed." />
+      <KpiCard label="Pending Till Today" value={k.pendingTillToday} colorClass="kpi-blue" icon={Clock} tooltip="Pending orders with planned dispatch date ≥ today." />
+    </div>
+  )
+}
+
 // ── Main Dashboard ────────────────────────────────────────────
 export default function OnTimeDelivery() {
   const { orders } = useOrderContext()
@@ -365,6 +426,9 @@ export default function OnTimeDelivery() {
 
       {/* Filters */}
       <FilterBar filters={filters} setFilter={setFilter} weekOptions={weekOptions} onClear={() => setFilters(INIT_FILTERS)} />
+
+      {/* KPI Summary Cards — updates with filters */}
+      <SummaryCards orders={filtered} />
 
       {/* Full Data Table */}
       <FullDataTable orders={filtered} />
